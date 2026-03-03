@@ -64,7 +64,26 @@ body {
 .di { padding: 3px 16px 3px 22px; font-size: 11px; cursor: default; white-space: nowrap; position: relative; }
 .di:hover { background: #000080; color: #fff; }
 .di.chk::before { content: '\2713'; position: absolute; left: 6px; }
+.di.radio::before { content: '\2022'; position: absolute; left: 7px; font-size: 14px; line-height: 12px; }
 .dsep { border: none; border-top: 1px solid #808080; border-bottom: 1px solid #fff; margin: 3px 2px; }
+
+/* Tooltip */
+.di .tip {
+  display: none;
+  position: absolute;
+  left: 100%; top: -2px;
+  background: #ffffe1;
+  border: 1px solid #000;
+  padding: 4px 6px;
+  font-size: 11px;
+  color: #000;
+  white-space: normal;
+  width: 200px;
+  z-index: 1000;
+  box-shadow: 1px 1px 0 #808080;
+  line-height: 1.4;
+}
+.di:hover .tip { display: block; }
 
 /* Game area */
 #ga { padding: 6px; }
@@ -173,8 +192,10 @@ body {
         <div class="di" id="m-exp" onclick="setMode('exp')">Expert</div>
         <div class="dsep"></div>
         <div class="di" id="m-marks" onclick="toggleMarks()">Marks (?)</div>
-        <div class="di" id="m-autoflag" onclick="toggleAutoFlag()">Auto Flag</div>
-        <div class="di" id="m-auto" onclick="toggleAutoSolve()">Auto Solve</div>
+        <div class="dsep"></div>
+        <div class="di radio" id="m-ar" onclick="setAssist('reveal')">Auto Reveal<span class="tip">Spacebar chords numbers recursively. Placing a flag auto-reveals satisfied neighbors. No automatic flagging.</span></div>
+        <div class="di" id="m-af" onclick="setAssist('flag')">Auto Flag<span class="tip">Everything in Auto Reveal, plus the game automatically flags cells that are logically certain to be mines. You still reveal manually.</span></div>
+        <div class="di" id="m-as" onclick="setAssist('solve')">Auto Solve<span class="tip">Everything in Auto Flag, plus the game automatically reveals safe cells around flagged mines. Chains until no more deductions can be made.</span></div>
       </div>
     </div>
     <div class="mi">Help
@@ -245,14 +266,12 @@ function toggleMarks(){
   document.getElementById('m-marks').classList.toggle('chk',showMarks);
 }
 
-function toggleAutoFlag(){
-  autoFlagOn=!autoFlagOn;
-  document.getElementById('m-autoflag').classList.toggle('chk',autoFlagOn);
-}
-
-function toggleAutoSolve(){
-  autoSolveOn=!autoSolveOn;
-  document.getElementById('m-auto').classList.toggle('chk',autoSolveOn);
+function setAssist(level){
+  autoFlagOn = (level==='flag'||level==='solve');
+  autoSolveOn = (level==='solve');
+  ['ar','af','as'].forEach(k=>document.getElementById('m-'+k).classList.remove('radio'));
+  const id = level==='reveal'?'m-ar':level==='flag'?'m-af':'m-as';
+  document.getElementById(id).classList.add('radio');
 }
 
 function newGame(){
@@ -572,8 +591,9 @@ document.addEventListener('keydown',function(e){
 // ── Clear hover when leaving grid ──
 document.getElementById('grid').addEventListener('mouseleave',()=>{ hoverRC=null; });
 
-// ── Init marks checkbox ──
+// ── Init ──
 document.getElementById('m-marks').classList.add('chk');
+setAssist('reveal'); // default: Auto Reveal
 
 // ── Go! ──
 newGame();
