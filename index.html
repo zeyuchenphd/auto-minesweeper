@@ -101,19 +101,20 @@ body {
 .lcd {
   background: #000;
   position: relative;
-  width: 58px; height: 34px;
+  width: 41px; height: 25px;
   border: 1px solid; border-color: #808080 #fff #fff #808080;
   overflow: hidden;
 }
 .lcd-bg, .lcd-fg {
   font-family: 'DSEG7', monospace;
-  font-size: 26px;
+  font-size: 18px;
   font-weight: bold;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   position: absolute;
-  top: 50%; right: 3px;
+  top: 50%; right: 2px;
   transform: translateY(-50%);
   line-height: 1;
+  white-space: nowrap;
 }
 .lcd-bg { color: #300000; }
 .lcd-fg { color: #f00; }
@@ -620,7 +621,7 @@ function checkWin(){
 }
 
 // ── Zoom / Exit ──
-let zoomed=false;
+let zoomed=true;
 function toggleZoom(){
   zoomed=!zoomed;
   document.getElementById('win').classList.toggle('zoomed',zoomed);
@@ -664,6 +665,9 @@ document.getElementById('grid').addEventListener('mouseleave',()=>{ hoverRC=null
 // ── Init ──
 document.getElementById('m-marks').classList.add('chk');
 setAssist('reveal'); // default: Auto Reveal
+// Start at 200% zoom
+document.getElementById('win').classList.add('zoomed');
+document.getElementById('btn-max').textContent = '❐';
 
 // ── Go! ──
 newGame();
