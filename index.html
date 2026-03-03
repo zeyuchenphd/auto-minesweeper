@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Minesweeper</title>
+<style>
+@font-face {
+  font-family: 'DSEG7';
+  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff') format('woff');
+  font-weight: bold;
+  font-style: normal;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+body {
+  background: #3a6ea5;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Microsoft Sans Serif', 'Arial', sans-serif;
+}
+
+/* ── Window ── */
+#win {
+  background: #c0c0c0;
+  border: 3px solid;
+  border-color: #fff #808080 #808080 #fff;
+  box-shadow: 1px 1px 0 0 #000;
+  display: inline-block;
+}
+
+/* Title bar */
+.tbar {
+  height: 18px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+.tbar-left { display: flex; align-items: center; gap: 3px; color: #fff; font-size: 11px; font-weight: bold; }
+.tbar-btns { display: flex; gap: 2px; }
+.tbtn {
+  width: 16px; height: 14px;
+  background: #c0c0c0;
+  border: 1px solid; border-color: #fff #808080 #808080 #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: bold; color: #000; cursor: pointer;
+}
+.tbtn:active { border-color: #808080 #fff #fff #808080; }
+
+/* Menu bar */
+.mbar { background: #c0c0c0; display: flex; padding: 1px 2px 0; }
+.mi { padding: 1px 5px 2px; font-size: 11px; cursor: default; position: relative; }
+.mi:hover { background: #000080; color: #fff; }
+.mi:hover .drop { display: block; }
+.drop {
+  display: none; position: absolute; top: 100%; left: 0;
+  background: #c0c0c0; border: 2px solid; border-color: #fff #808080 #808080 #fff;
+  box-shadow: 2px 2px 0 #000; z-index: 999; min-width: 160px; color: #000;
+}
+.di { padding: 3px 16px 3px 22px; font-size: 11px; cursor: default; white-space: nowrap; position: relative; }
+.di:hover { background: #000080; color: #fff; }
+.di.chk::before { content: '\2713'; position: absolute; left: 6px; }
+.dsep { border: none; border-top: 1px solid #808080; border-bottom: 1px solid #fff; margin: 3px 2px; }
+
+/* Game area */
+#ga { padding: 6px; }
+
+/* Header / status */
+#hdr {
+  border: 3px solid; border-color: #808080 #fff #fff #808080;
+  background: #c0c0c0;
+  padding: 4px 5px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+/* LCD counter */
+.lcd {
+  background: #000;
+  position: relative;
+  width: 58px; height: 34px;
+  border: 1px solid; border-color: #808080 #fff #fff #808080;
+  overflow: hidden;
+}
+.lcd-bg, .lcd-fg {
+  font-family: 'DSEG7', monospace;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  position: absolute;
+  top: 50%; right: 3px;
+  transform: translateY(-50%);
+  line-height: 1;
+}
+.lcd-bg { color: #300000; }
+.lcd-fg { color: #f00; }
+
+/* Face button */
+#face {
+  width: 26px; height: 26px;
+  background: #c0c0c0;
+  border: 2px solid; border-color: #fff #808080 #808080 #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; outline: none;
+  font-size: 14px; line-height: 1;
+}
+#face:active, #face.dn { border-color: #808080 #fff #fff #808080; }
+
+/* Board wrapper */
+#bw {
+  border: 3px solid; border-color: #808080 #fff #fff #808080;
+  display: inline-block;
+}
+
+/* Grid */
+#grid {
+  display: grid;
+}
+
+/* Cells */
+.c {
+  width: 16px; height: 16px;
+  background: #c0c0c0;
+  border: 2px solid; border-color: #fff #808080 #808080 #fff;
+  cursor: default; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: bold;
+  font-family: 'Arial', sans-serif;
+  position: relative;
+  padding: 0;
+}
+.c.open {
+  border: 1px solid; border-color: #808080;
+}
+.c.pressed {
+  border: 1px solid; border-color: #808080;
+}
+.c.boom {
+  background: #f00;
+  border: 1px solid; border-color: #808080;
+}
+.n1{color:#0000ff}.n2{color:#007b00}.n3{color:#ff0000}
+.n4{color:#00007b}.n5{color:#7b0000}.n6{color:#007b7b}
+.n7{color:#000}.n8{color:#808080}
+
+.c svg { display: block; }
+</style>
+</head>
+<body>
+
+<div id="win">
+  <div class="tbar">
+    <div class="tbar-left"><span>💣</span><span>Minesweeper</span></div>
+    <div class="tbar-btns">
+      <div class="tbtn">─</div>
+      <div class="tbtn">□</div>
+      <div class="tbtn">✕</div>
+    </div>
+  </div>
+
+  <div class="mbar">
+    <div class="mi">Game
+      <div class="drop">
+        <div class="di" onclick="newGame()">New&emsp;&emsp;&emsp;&emsp;F2</div>
+        <div class="dsep"></div>
+        <div class="di chk" id="m-beg" onclick="setMode('beg')">Beginner</div>
+        <div class="di" id="m-int" onclick="setMode('int')">Intermediate</div>
+        <div class="di" id="m-exp" onclick="setMode('exp')">Expert</div>
+        <div class="dsep"></div>
+        <div class="di" id="m-marks" onclick="toggleMarks()">Marks (?)</div>
+        <div class="di" id="m-auto" onclick="toggleAutoSolve()">Auto Solve</div>
+      </div>
+    </div>
+    <div class="mi">Help
+      <div class="drop">
+        <div class="di" onclick="alert('Left-click an empty square to reveal it.\nRight-click (or Ctrl+click) an empty square to flag it.\nMiddle-click (or left+right click) a number to reveal its adjacent squares.\nPress space bar while hovering over a square to flag it or reveal its adjacent squares.\nPress F2 or click the smiley face to start a new game.')">How to Play</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ga">
+    <div id="hdr">
+      <div class="lcd"><span class="lcd-bg">888</span><span class="lcd-fg" id="lcd-m">010</span></div>
+      <button id="face" onclick="newGame()">🙂</button>
+      <div class="lcd"><span class="lcd-bg">888</span><span class="lcd-fg" id="lcd-t">000</span></div>
+    </div>
+    <div id="bw"><div id="grid"></div></div>
+  </div>
+</div>
+
+<script>
+const MODES = {
+  beg: {r:9,  c:9,  m:10},
+  int: {r:16, c:16, m:40},
+  exp: {r:16, c:30, m:99}
+};
+
+let mode='beg', R, C, M;
+let board, vis, flg, mrk;
+let alive, won, first;
+let mLeft, secs, tmr;
+let showMarks = true;
+let autoSolveOn = false;
+let cells; // flat array of cell elements
+
+// ── SVGs ──
+const MINE = `<svg width="11" height="11" viewBox="0 0 13 13"><line x1="6.5" y1="0" x2="6.5" y2="4" stroke="#000" stroke-width="2"/><line x1="6.5" y1="9" x2="6.5" y2="13" stroke="#000" stroke-width="2"/><line x1="0" y1="6.5" x2="4" y2="6.5" stroke="#000" stroke-width="2"/><line x1="9" y1="6.5" x2="13" y2="6.5" stroke="#000" stroke-width="2"/><line x1="2" y1="2" x2="4.3" y2="4.3" stroke="#000" stroke-width="1.5"/><line x1="11" y1="2" x2="8.7" y2="4.3" stroke="#000" stroke-width="1.5"/><line x1="2" y1="11" x2="4.3" y2="8.7" stroke="#000" stroke-width="1.5"/><line x1="11" y1="11" x2="8.7" y2="8.7" stroke="#000" stroke-width="1.5"/><circle cx="6.5" cy="6.5" r="3.8" fill="#000"/><circle cx="5" cy="5" r="1.1" fill="#fff"/></svg>`;
+
+const FLAG = `<svg width="10" height="12" viewBox="0 0 10 12"><rect x="4" y="0" width="1.5" height="10.5" fill="#000"/><polygon points="5.5,0.5 5.5,6 10,3" fill="#f00"/><rect x="1.5" y="10" width="7" height="1.5" fill="#000"/><rect x="2.5" y="9" width="5" height="1" fill="#000"/></svg>`;
+
+const XMARK = `<svg width="11" height="11" viewBox="0 0 13 13"><line x1="1" y1="1" x2="12" y2="12" stroke="#f00" stroke-width="2.5"/><line x1="12" y1="1" x2="1" y2="12" stroke="#f00" stroke-width="2.5"/></svg>`;
+
+// ── Helpers ──
+function idx(r,c){ return r*C+c; }
+function el(r,c){ return cells[idx(r,c)]; }
+function lcd(id,n){
+  n=Math.max(-99,Math.min(999,n));
+  document.getElementById(id).textContent = n<0 ? '-'+String(-n).padStart(2,'0') : String(n).padStart(3,'0');
+}
+function face(f){ document.getElementById('face').textContent=f; }
+function neighbors(r,c,fn){
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+    if(!dr&&!dc) continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<R&&nc>=0&&nc<C) fn(nr,nc);
+  }
+}
+
+// ── Setup ──
+function setMode(m){
+  ['beg','int','exp'].forEach(k=>document.getElementById('m-'+k).classList.remove('chk'));
+  document.getElementById('m-'+m).classList.add('chk');
+  mode=m; newGame();
+}
+
+function toggleMarks(){
+  showMarks=!showMarks;
+  document.getElementById('m-marks').classList.toggle('chk',showMarks);
+}
+
+function toggleAutoSolve(){
+  autoSolveOn=!autoSolveOn;
+  document.getElementById('m-auto').classList.toggle('chk',autoSolveOn);
+}
+
+function newGame(){
+  clearInterval(tmr); tmr=null;
+  const cfg=MODES[mode];
+  R=cfg.r; C=cfg.c; M=cfg.m;
+  board=Array.from({length:R},()=>Array(C).fill(0));
+  vis=Array.from({length:R},()=>Array(C).fill(false));
+  flg=Array.from({length:R},()=>Array(C).fill(false));
+  mrk=Array.from({length:R},()=>Array(C).fill(false));
+  alive=true; won=false; first=true;
+  mLeft=M; secs=0;
+  face('🙂'); lcd('lcd-m',mLeft); lcd('lcd-t',0);
+  buildGrid();
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  g.style.gridTemplateColumns=`repeat(${C},16px)`;
+  cells=[];
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    const d=document.createElement('div');
+    d.className='c';
+    d.dataset.r=r; d.dataset.c=c;
+    d.addEventListener('mousedown',onDown);
+    d.addEventListener('mouseover',onHover);
+    d.addEventListener('contextmenu',e=>e.preventDefault());
+    g.appendChild(d);
+    cells.push(d);
+  }
+}
+
+// ── Drawing ──
+function draw(r,c){
+  const e=el(r,c); if(!e) return;
+  e.className='c'; e.innerHTML='';
+  if(vis[r][c]){
+    const v=board[r][c];
+    e.classList.add('open');
+    if(v===-1){ e.innerHTML=MINE; }
+    else if(v>0){ e.textContent=v; e.classList.add('n'+v); }
+    return;
+  }
+  if(flg[r][c]){ e.innerHTML=FLAG; return; }
+  if(mrk[r][c]){ e.textContent='?'; return; }
+}
+
+function drawDead(hr,hc){
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    const e=el(r,c); e.className='c'; e.innerHTML='';
+    if(flg[r][c]&&board[r][c]!==-1){
+      e.classList.add('open');
+      e.innerHTML=`<div style="position:relative;width:11px;height:11px">${MINE}<div style="position:absolute;top:0;left:0">${XMARK}</div></div>`;
+    } else if(!flg[r][c]&&board[r][c]===-1){
+      e.classList.add(r===hr&&c===hc?'boom':'open');
+      e.innerHTML=MINE;
+    } else if(flg[r][c]&&board[r][c]===-1){
+      e.innerHTML=FLAG;
+    } else if(vis[r][c]){
+      e.classList.add('open');
+      const v=board[r][c];
+      if(v>0){ e.textContent=v; e.classList.add('n'+v); }
+    }
+  }
+}
+
+// ── Hover tracking ──
+let hoverRC=null;
+
+// ── Mouse ──
+let btns={l:false,r:false}, downRC=null, hlList=[];
+
+function onHover(e){
+  hoverRC={r:+e.currentTarget.dataset.r, c:+e.currentTarget.dataset.c};
+}
+
+function onDown(e){
+  e.preventDefault();
+  if(!alive||won) return;
+  const r=+e.currentTarget.dataset.r, c=+e.currentTarget.dataset.c;
+  downRC={r,c};
+  // Ctrl+click = right-click (flag)
+  if(e.button===0&&e.ctrlKey){ doRight(r,c); return; }
+  if(e.button===0) btns.l=true;
+  if(e.button===2) btns.r=true;
+  if(e.button===1){ doChord(r,c); return; }
+  if(btns.l&&btns.r){ showHL(r,c); return; }
+  if(e.button===2&&!btns.l){ doRight(r,c); return; }
+  if(e.button===0&&!vis[r][c]&&!flg[r][c]) face('😮');
+}
+
+document.addEventListener('mouseup',function(e){
+  if(!alive||won){ btns.l=false; btns.r=false; return; }
+  const wL=btns.l, wR=btns.r;
+  if(e.button===0) btns.l=false;
+  if(e.button===2) btns.r=false;
+  clearHL();
+  if(!downRC) return;
+  const{r,c}=downRC; downRC=null;
+  if(wL&&wR){ doChord(r,c); face(won?'😎':alive?'🙂':'😵'); return; }
+  if(e.button===0&&wL&&!wR) doLeft(r,c);
+  if(!alive||won) return;
+  face('🙂');
+});
+
+function showHL(r,c){
+  clearHL();
+  neighbors(r,c,(nr,nc)=>{
+    if(!vis[nr][nc]&&!flg[nr][nc]){ const e=el(nr,nc); e.classList.add('pressed'); hlList.push(e); }
+  });
+  if(!vis[r][c]&&!flg[r][c]){ const e=el(r,c); e.classList.add('pressed'); hlList.push(e); }
+}
+function clearHL(){ hlList.forEach(e=>e.classList.remove('pressed')); hlList=[]; }
+
+// ── Actions ──
+function doLeft(r,c){
+  if(vis[r][c]||flg[r][c]||mrk[r][c]) return;
+  if(first){ first=false; placeMines(r,c); startTimer(); }
+  reveal(r,c); checkWin();
+  if(autoSolveOn&&alive&&!won) autoSolve();
+}
+
+function doRight(r,c){
+  if(vis[r][c]) return;
+  const wasFlag=flg[r][c];
+  if(!flg[r][c]&&!mrk[r][c]){
+    flg[r][c]=true; mLeft--;
+  } else if(flg[r][c]){
+    flg[r][c]=false; mLeft++;
+    if(showMarks) mrk[r][c]=true;
+  } else {
+    mrk[r][c]=false;
+  }
+  lcd('lcd-m',mLeft); draw(r,c);
+  // After placing a flag, auto-chord adjacent satisfied numbers recursively
+  if(flg[r][c]&&!wasFlag){
+    neighbors(r,c,(nr,nc)=>{
+      if(alive&&!won&&vis[nr][nc]&&board[nr][nc]>0) doRecursiveChord(nr,nc);
+    });
+    if(autoSolveOn&&alive&&!won) autoSolve();
+    if(!alive) face('😵');
+    else if(won) face('😎');
+  }
+}
+
+function doChord(r,c){
+  if(!vis[r][c]||board[r][c]<=0) return;
+  let f=0; neighbors(r,c,(nr,nc)=>{ if(flg[nr][nc]) f++; });
+  if(f!==board[r][c]) return;
+  neighbors(r,c,(nr,nc)=>{ if(!vis[nr][nc]&&!flg[nr][nc]) reveal(nr,nc); });
+  checkWin();
+  if(autoSolveOn&&alive&&!won) autoSolve();
+}
+
+// Recursive chord (spacebar only): chords the cell, then auto-chords
+// any newly revealed numbers whose flag counts already match.
+function doRecursiveChord(sr,sc){
+  const queue=[[sr,sc]];
+  const seen=new Set();
+  seen.add(sr*C+sc);
+  while(queue.length){
+    const[r,c]=queue.shift();
+    if(!alive) return;
+    if(!vis[r][c]||board[r][c]<=0) continue;
+    let f=0; neighbors(r,c,(nr,nc)=>{ if(flg[nr][nc]) f++; });
+    if(f!==board[r][c]) continue;
+    neighbors(r,c,(nr,nc)=>{
+      if(!vis[nr][nc]&&!flg[nr][nc]) reveal(nr,nc);
+    });
+    if(!alive) return;
+    // enqueue any revealed numbered neighbors for further chording
+    neighbors(r,c,(nr,nc)=>{
+      const key=nr*C+nc;
+      if(vis[nr][nc]&&board[nr][nc]>0&&!seen.has(key)){
+        seen.add(key); queue.push([nr,nc]);
+      }
+    });
+  }
+  checkWin();
+}
+
+// ── Auto-solve: deduce forced flags, then auto-chord, repeat until stable ──
+function autoSolve(){
+  let changed=true;
+  while(changed&&alive&&!won){
+    changed=false;
+    // Pass 1: auto-flag — if a number's unflagged hidden neighbors == remaining mines, flag them
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      if(!vis[r][c]||board[r][c]<=0) continue;
+      let fc=0, hidden=[];
+      neighbors(r,c,(nr,nc)=>{
+        if(flg[nr][nc]) fc++;
+        else if(!vis[nr][nc]) hidden.push([nr,nc]);
+      });
+      const rem=board[r][c]-fc;
+      if(rem>0&&rem===hidden.length){
+        for(const[nr,nc] of hidden){
+          if(!flg[nr][nc]){ flg[nr][nc]=true; mLeft--; draw(nr,nc); changed=true; }
+        }
+      }
+    }
+    if(changed) lcd('lcd-m',mLeft);
+    // Pass 2: auto-chord — reveal around any number whose flags match
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      if(!alive||won) return;
+      if(!vis[r][c]||board[r][c]<=0) continue;
+      let fc=0,hasHidden=false;
+      neighbors(r,c,(nr,nc)=>{
+        if(flg[nr][nc]) fc++;
+        else if(!vis[nr][nc]) hasHidden=true;
+      });
+      if(fc===board[r][c]&&hasHidden){
+        neighbors(r,c,(nr,nc)=>{
+          if(!vis[nr][nc]&&!flg[nr][nc]){ reveal(nr,nc); changed=true; }
+        });
+      }
+    }
+    if(!alive) return;
+    checkWin();
+  }
+}
+
+// ── Logic ──
+function placeMines(sr,sc){
+  const safe=new Set();
+  for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+    const nr=sr+dr,nc=sc+dc;
+    if(nr>=0&&nr<R&&nc>=0&&nc<C) safe.add(nr*C+nc);
+  }
+  let p=0;
+  while(p<M){
+    const r=Math.floor(Math.random()*R),c=Math.floor(Math.random()*C);
+    if(board[r][c]===-1||safe.has(r*C+c)) continue;
+    board[r][c]=-1; p++;
+  }
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+    if(board[r][c]===-1) continue;
+    let n=0; neighbors(r,c,(nr,nc)=>{ if(board[nr][nc]===-1) n++; });
+    board[r][c]=n;
+  }
+}
+
+function reveal(r,c){
+  if(r<0||r>=R||c<0||c>=C||vis[r][c]||flg[r][c]) return;
+  vis[r][c]=true;
+  draw(r,c);
+  if(board[r][c]===-1){
+    alive=false; clearInterval(tmr); face('😵');
+    drawDead(r,c); return;
+  }
+  if(board[r][c]===0) neighbors(r,c,(nr,nc)=>reveal(nr,nc));
+}
+
+function checkWin(){
+  if(!alive) return;
+  let h=0;
+  for(let r=0;r<R;r++) for(let c=0;c<C;c++) if(!vis[r][c]) h++;
+  if(h===M){
+    won=true; clearInterval(tmr); face('😎');
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      if(!vis[r][c]&&!flg[r][c]){ flg[r][c]=true; draw(r,c); }
+    }
+    lcd('lcd-m',0);
+  }
+}
+
+// ── Timer ──
+function startTimer(){
+  if(tmr) return;
+  tmr=setInterval(()=>{ if(secs<999){ secs++; lcd('lcd-t',secs); }},1000);
+}
+
+// ── Keyboard ──
+document.addEventListener('keydown',function(e){
+  if(e.key==='F2'){ e.preventDefault(); newGame(); return; }
+  if(e.key===' '&&hoverRC&&alive&&!won){
+    e.preventDefault();
+    const{r,c}=hoverRC;
+    if(vis[r][c]){
+      // Revealed number: recursive chord (reveal adjacent squares, then chain)
+      doRecursiveChord(r,c);
+      if(autoSolveOn&&alive&&!won) autoSolve();
+      if(!alive) face('😵');
+      else if(won) face('😎');
+    } else {
+      // Unrevealed: toggle flag
+      doRight(r,c);
+    }
+  }
+});
+
+// ── Clear hover when leaving grid ──
+document.getElementById('grid').addEventListener('mouseleave',()=>{ hoverRC=null; });
+
+// ── Init marks checkbox ──
+document.getElementById('m-marks').classList.add('chk');
+
+// ── Go! ──
+newGame();
+</script>
+</body>
+</html>
