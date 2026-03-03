@@ -633,6 +633,8 @@ function hideExit(){ document.getElementById('exit-dlg').classList.remove('show'
 function doExit(){
   hideExit();
   window.close();
+  // fallback if browser blocks window.close()
+  document.getElementById('win').style.display='none';
 }
 
 // ── Timer ──
