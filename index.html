@@ -101,15 +101,15 @@ body {
 .lcd {
   background: #000;
   position: relative;
-  width: 41px; height: 25px;
+  width: 39px; height: 23px;
   border: 1px solid; border-color: #808080 #fff #fff #808080;
   overflow: hidden;
 }
 .lcd-bg, .lcd-fg {
   font-family: 'DSEG7', monospace;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  letter-spacing: 1px;
+  letter-spacing: -1px;
   position: absolute;
   top: 50%; right: 2px;
   transform: translateY(-50%);
@@ -149,8 +149,9 @@ body {
   border: 2px solid; border-color: #fff #808080 #808080 #fff;
   cursor: default; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: bold;
-  font-family: 'Arial', sans-serif;
+  font-size: 11px; font-weight: 900;
+  font-family: 'Arial Black', 'Arial', sans-serif;
+  -webkit-font-smoothing: none;
   position: relative;
   padding: 0;
 }
