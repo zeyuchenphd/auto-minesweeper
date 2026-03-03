@@ -632,7 +632,7 @@ function showExit(){ document.getElementById('exit-dlg').classList.add('show'); 
 function hideExit(){ document.getElementById('exit-dlg').classList.remove('show'); }
 function doExit(){
   hideExit();
-  document.getElementById('win').style.display='none';
+  window.close();
 }
 
 // ── Timer ──
