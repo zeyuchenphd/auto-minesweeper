@@ -229,9 +229,9 @@ body {
       <div class="drop">
         <div class="di" onclick="newGame()">New&emsp;&emsp;&emsp;&emsp;F2</div>
         <div class="dsep"></div>
-        <div class="di chk" id="m-beg" onclick="setMode('beg')">Beginner</div>
+        <div class="di" id="m-beg" onclick="setMode('beg')">Beginner</div>
         <div class="di" id="m-int" onclick="setMode('int')">Intermediate</div>
-        <div class="di" id="m-exp" onclick="setMode('exp')">Expert</div>
+        <div class="di chk" id="m-exp" onclick="setMode('exp')">Expert</div>
         <div class="dsep"></div>
         <div class="di" id="m-marks" onclick="toggleMarks()">Marks (?)</div>
         <div class="dsep"></div>
@@ -280,7 +280,7 @@ const MODES = {
   exp: {r:16, c:30, m:99}
 };
 
-let mode='beg', R, C, M;
+let mode='exp', R, C, M;
 let board, vis, flg, mrk;
 let alive, won, first;
 let mLeft, secs, tmr;

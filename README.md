@@ -1,62 +1,47 @@
 # Auto Minesweeper
 
-A faithful recreation of classic Windows 95 Minesweeper — playable in your browser with smart assists that make the game more enjoyable without taking away the challenge.
+The classic game you love — now smarter. Play Minesweeper with built-in assists that eliminate the tedious parts and let you focus on the real puzzles.
 
-**[Play Now](https://zeyuchenphd.github.io/auto-minesweeper/)**
+<h2><a href="https://zeyuchenphd.github.io/auto-minesweeper/">Play Now</a></h2>
 
-## Features
+No downloads. No installs. Just click and play.
 
-### Classic Minesweeper
-- Pixel-perfect Win95 aesthetic — 3D beveled cells, sunken panels, blue title bar
-- 7-segment LED displays (DSEG7 font) with ghost segments for mine counter and timer
-- SVG-rendered mines, flags, and number colors matching the original
-- Three difficulty modes:
+---
 
-| Mode         | Grid   | Mines |
-|--------------|--------|-------|
-| Beginner     | 9 × 9  | 10    |
-| Intermediate | 16 × 16 | 40    |
-| Expert       | 16 × 30 | 99    |
+## Choose Your Play Style
 
-### Smart Assists
+Pick one of three assist modes from the **Game** menu. Each one builds on the last.
 
-#### Spacebar Controls
-- **Hover over an unrevealed cell + Space** — toggle flag (same as right-click)
-- **Hover over a revealed number + Space** — recursive chord: reveals adjacent cells if flag count matches, then automatically chains to any newly revealed numbers that are also satisfied
+### Auto Reveal
+> *The default mode.*
 
-#### Auto-Chord on Flag
-When you place a flag, the game automatically checks all adjacent numbers. If any number's flag count now matches its value, it reveals the remaining neighbors — and chains recursively.
+When you place a flag, the game instantly opens any safe squares around it. You still find and flag every mine yourself — the game just saves you from clicking squares you already know are safe.
 
-#### Auto Solve Mode (Optional)
-Toggle via **Game > Auto Solve** in the menu (off by default). When enabled:
-- After every action, the game scans all visible numbers
-- If a number's remaining hidden neighbors exactly equals its remaining mine count, those cells are **automatically flagged**
-- Satisfied numbers are then **automatically chorded**
-- This repeats until no more logical deductions can be made
+### Auto Flag
+> *For when the obvious mines are just busywork.*
 
-This lets you focus on the tricky decisions — the game handles the obvious ones.
+The game spots mines that are 100% certain — like a "1" with only one hidden neighbor left — and flags them for you. You still open every square yourself, but you never waste a click on an obvious flag.
 
-### Controls
+### Auto Solve
+> *Let the game handle the easy stuff.*
+
+Flags obvious mines **and** opens safe squares, automatically chaining through every logical deduction it can make. You only step in when the game hits an ambiguous spot that requires real thinking.
+
+---
+
+## How to Play
 
 | Action | Input |
 |--------|-------|
-| Reveal a cell | Left-click |
-| Flag / unflag | Right-click or Ctrl+click |
-| Place ? mark | Right-click a flag (when Marks enabled) |
-| Chord (reveal neighbors) | Middle-click or Left+Right click |
-| Recursive chord | Spacebar on a number |
-| Flag cell | Spacebar on unrevealed cell |
+| Open a square | Left-click |
+| Flag a mine | Right-click or Ctrl+click |
+| Reveal neighbors | Middle-click or Left+Right click on a number |
+| Quick flag / reveal | Spacebar while hovering |
 | New game | F2 or click the smiley face |
+| Zoom in / out | Click the maximize button (□) |
 
-## Tech
+Three difficulty levels available: **Beginner** (9x9, 10 mines), **Intermediate** (16x16, 40 mines), and **Expert** (30x16, 99 mines).
 
-Single self-contained HTML file. No dependencies, no build step, no frameworks — just HTML, CSS, and vanilla JavaScript.
+---
 
-- CSS Grid layout for the minefield
-- Inline SVG for mine and flag graphics
-- [DSEG7 Classic](https://github.com/keshikan/DSEG) font for 7-segment LCD displays
-- BFS-based recursive chord and auto-solve algorithms
-
-## License
-
-MIT
+*Built as a love letter to the original Windows 95 Minesweeper.*
