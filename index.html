@@ -173,6 +173,7 @@ body {
         <div class="di" id="m-exp" onclick="setMode('exp')">Expert</div>
         <div class="dsep"></div>
         <div class="di" id="m-marks" onclick="toggleMarks()">Marks (?)</div>
+        <div class="di" id="m-autoflag" onclick="toggleAutoFlag()">Auto Flag</div>
         <div class="di" id="m-auto" onclick="toggleAutoSolve()">Auto Solve</div>
       </div>
     </div>
@@ -205,6 +206,7 @@ let board, vis, flg, mrk;
 let alive, won, first;
 let mLeft, secs, tmr;
 let showMarks = true;
+let autoFlagOn = false;
 let autoSolveOn = false;
 let cells; // flat array of cell elements
 
@@ -241,6 +243,11 @@ function setMode(m){
 function toggleMarks(){
   showMarks=!showMarks;
   document.getElementById('m-marks').classList.toggle('chk',showMarks);
+}
+
+function toggleAutoFlag(){
+  autoFlagOn=!autoFlagOn;
+  document.getElementById('m-autoflag').classList.toggle('chk',autoFlagOn);
 }
 
 function toggleAutoSolve(){
@@ -366,7 +373,7 @@ function doLeft(r,c){
   if(vis[r][c]||flg[r][c]||mrk[r][c]) return;
   if(first){ first=false; placeMines(r,c); startTimer(); }
   reveal(r,c); checkWin();
-  if(autoSolveOn&&alive&&!won) autoSolve();
+  if(alive&&!won){ if(autoFlagOn&&!autoSolveOn) autoFlagPass(); if(autoSolveOn) autoSolve(); }
 }
 
 function doRight(r,c){
@@ -386,7 +393,7 @@ function doRight(r,c){
     neighbors(r,c,(nr,nc)=>{
       if(alive&&!won&&vis[nr][nc]&&board[nr][nc]>0) doRecursiveChord(nr,nc);
     });
-    if(autoSolveOn&&alive&&!won) autoSolve();
+    if(alive&&!won){ if(autoFlagOn&&!autoSolveOn) autoFlagPass(); if(autoSolveOn) autoSolve(); }
     if(!alive) face('😵');
     else if(won) face('😎');
   }
@@ -398,7 +405,7 @@ function doChord(r,c){
   if(f!==board[r][c]) return;
   neighbors(r,c,(nr,nc)=>{ if(!vis[nr][nc]&&!flg[nr][nc]) reveal(nr,nc); });
   checkWin();
-  if(autoSolveOn&&alive&&!won) autoSolve();
+  if(alive&&!won){ if(autoFlagOn&&!autoSolveOn) autoFlagPass(); if(autoSolveOn) autoSolve(); }
 }
 
 // Recursive chord (spacebar only): chords the cell, then auto-chords
@@ -426,6 +433,30 @@ function doRecursiveChord(sr,sc){
     });
   }
   checkWin();
+}
+
+// ── Auto-flag: only flag obvious mines, no revealing ──
+function autoFlagPass(){
+  if(!alive||won) return;
+  let changed=true;
+  while(changed){
+    changed=false;
+    for(let r=0;r<R;r++) for(let c=0;c<C;c++){
+      if(!vis[r][c]||board[r][c]<=0) continue;
+      let fc=0, hidden=[];
+      neighbors(r,c,(nr,nc)=>{
+        if(flg[nr][nc]) fc++;
+        else if(!vis[nr][nc]) hidden.push([nr,nc]);
+      });
+      const rem=board[r][c]-fc;
+      if(rem>0&&rem===hidden.length){
+        for(const[nr,nc] of hidden){
+          if(!flg[nr][nc]){ flg[nr][nc]=true; mLeft--; draw(nr,nc); changed=true; }
+        }
+      }
+    }
+    if(changed) lcd('lcd-m',mLeft);
+  }
 }
 
 // ── Auto-solve: deduce forced flags, then auto-chord, repeat until stable ──
@@ -528,7 +559,7 @@ document.addEventListener('keydown',function(e){
     if(vis[r][c]){
       // Revealed number: recursive chord (reveal adjacent squares, then chain)
       doRecursiveChord(r,c);
-      if(autoSolveOn&&alive&&!won) autoSolve();
+      if(alive&&!won){ if(autoFlagOn&&!autoSolveOn) autoFlagPass(); if(autoSolveOn) autoSolve(); }
       if(!alive) face('😵');
       else if(won) face('😎');
     } else {
