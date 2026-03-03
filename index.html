@@ -168,6 +168,46 @@ body {
 .n7{color:#000}.n8{color:#808080}
 
 .c svg { display: block; }
+
+/* Zoom */
+#win.zoomed { transform: scale(2); transform-origin: center center; }
+
+/* Exit dialog overlay */
+.overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.3);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+.overlay.show { display: flex; }
+.dialog {
+  background: #c0c0c0;
+  border: 3px solid; border-color: #fff #808080 #808080 #fff;
+  box-shadow: 2px 2px 0 #000;
+  min-width: 240px;
+}
+.dialog .tbar { cursor: default; }
+.dialog-body {
+  padding: 16px 20px;
+  font-size: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.dialog-icon { font-size: 28px; }
+.dialog-btns {
+  padding: 0 20px 12px;
+  display: flex; justify-content: center; gap: 8px;
+}
+.dbtn {
+  background: #c0c0c0;
+  border: 2px solid; border-color: #fff #808080 #808080 #fff;
+  padding: 3px 16px;
+  font-size: 12px; font-family: inherit;
+  cursor: pointer; min-width: 65px;
+}
+.dbtn:active { border-color: #808080 #fff #fff #808080; }
 </style>
 </head>
 <body>
@@ -177,8 +217,8 @@ body {
     <div class="tbar-left"><span>💣</span><span>Minesweeper</span></div>
     <div class="tbar-btns">
       <div class="tbtn">─</div>
-      <div class="tbtn">□</div>
-      <div class="tbtn">✕</div>
+      <div class="tbtn" id="btn-max" onclick="toggleZoom()">□</div>
+      <div class="tbtn" onclick="showExit()">✕</div>
     </div>
   </div>
 
@@ -193,9 +233,9 @@ body {
         <div class="dsep"></div>
         <div class="di" id="m-marks" onclick="toggleMarks()">Marks (?)</div>
         <div class="dsep"></div>
-        <div class="di radio" id="m-ar" onclick="setAssist('reveal')">Auto Reveal<span class="tip">Spacebar chords numbers recursively. Placing a flag auto-reveals satisfied neighbors. No automatic flagging.</span></div>
-        <div class="di" id="m-af" onclick="setAssist('flag')">Auto Flag<span class="tip">Everything in Auto Reveal, plus the game automatically flags cells that are logically certain to be mines. You still reveal manually.</span></div>
-        <div class="di" id="m-as" onclick="setAssist('solve')">Auto Solve<span class="tip">Everything in Auto Flag, plus the game automatically reveals safe cells around flagged mines. Chains until no more deductions can be made.</span></div>
+        <div class="di radio" id="m-ar" onclick="setAssist('reveal')">Auto Reveal<span class="tip">When you place a flag, safe squares next to it are revealed for you. You flag mines yourself.</span></div>
+        <div class="di" id="m-af" onclick="setAssist('flag')">Auto Flag<span class="tip">Same as Auto Reveal, plus obvious mines get flagged for you. You still click to open squares.</span></div>
+        <div class="di" id="m-as" onclick="setAssist('solve')">Auto Solve<span class="tip">The game flags all obvious mines AND opens all safe squares automatically. You only handle the tricky parts.</span></div>
       </div>
     </div>
     <div class="mi">Help
@@ -212,6 +252,22 @@ body {
       <div class="lcd"><span class="lcd-bg">888</span><span class="lcd-fg" id="lcd-t">000</span></div>
     </div>
     <div id="bw"><div id="grid"></div></div>
+  </div>
+</div>
+
+<div class="overlay" id="exit-dlg">
+  <div class="dialog">
+    <div class="tbar">
+      <div class="tbar-left"><span>Minesweeper</span></div>
+    </div>
+    <div class="dialog-body">
+      <div class="dialog-icon">⚠️</div>
+      <div>Are you sure you want to exit?</div>
+    </div>
+    <div class="dialog-btns">
+      <button class="dbtn" onclick="doExit()">Yes</button>
+      <button class="dbtn" onclick="hideExit()">No</button>
+    </div>
   </div>
 </div>
 
@@ -561,6 +617,20 @@ function checkWin(){
     }
     lcd('lcd-m',0);
   }
+}
+
+// ── Zoom / Exit ──
+let zoomed=false;
+function toggleZoom(){
+  zoomed=!zoomed;
+  document.getElementById('win').classList.toggle('zoomed',zoomed);
+  document.getElementById('btn-max').textContent = zoomed ? '❐' : '□';
+}
+function showExit(){ document.getElementById('exit-dlg').classList.add('show'); }
+function hideExit(){ document.getElementById('exit-dlg').classList.remove('show'); }
+function doExit(){
+  hideExit();
+  document.getElementById('win').style.display='none';
 }
 
 // ── Timer ──
